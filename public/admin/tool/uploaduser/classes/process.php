@@ -802,7 +802,10 @@ class process {
                                 }
                             }
                             if (!validate_email($user->email)) {
-                                $this->upt->track('email', get_string('invalidemail'), 'warning');
+                                $this->upt->track('email', get_string('invalidemail'), 'error');
+                                $this->upt->track('status', get_string('usernotupdatederror', 'error'), 'error');
+                                $this->userserrors++;
+                                return;
                             }
                         }
 
@@ -985,7 +988,10 @@ class process {
                 }
             }
             if (!validate_email($user->email)) {
-                $this->upt->track('email', get_string('invalidemail'), 'warning');
+                $this->upt->track('email', get_string('invalidemail'), 'error');
+                $this->upt->track('status', get_string('usernotaddederror', 'error'), 'error');
+                $this->userserrors++;
+                return;
             }
 
             if (empty($user->lang)) {
