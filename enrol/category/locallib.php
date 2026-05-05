@@ -85,19 +85,19 @@ function enrol_category_sync_course($course) {
     }
 
     // Add new enrolments.
-    $sql = "SELECT ra.userid, ra.estart
+    $sql = "SELECT ra.userid, ra.estart, ra.roleid
               FROM (SELECT xra.userid, MIN(xra.timemodified) AS estart
                       FROM {role_assignments} xra
                       JOIN {user} xu ON (xu.id = xra.userid AND xu.deleted = 0)
                      WHERE xra.roleid $roleids AND xra.contextid $contextids
-                  GROUP BY xra.userid
+                  GROUP BY xra.userid, xra.roleid
                    ) ra
          LEFT JOIN {user_enrolments} ue ON (ue.enrolid = :instanceid AND ue.userid = ra.userid)
              WHERE ue.id IS NULL";
     $params['instanceid'] = $instance->id;
     $rs = $DB->get_recordset_sql($sql, $params);
     foreach ($rs as $ra) {
-        $plugin->enrol_user($instance, $ra->userid, null, $ra->estart);
+        $plugin->enrol_user($instance, $ra->userid, $ra->roleid, $ra->estart);
     }
     $rs->close();
 
@@ -213,24 +213,26 @@ function enrol_category_sync_full(progress_trace $trace) {
     $rs->close();
 
     // Add missing enrolments.
-    $sql = "SELECT e.*, cat.userid, cat.estart
+    $sql = "SELECT e.*, cat.userid, cat.estart, cat.roleid
               FROM {enrol} e
               JOIN {context} ctx ON (ctx.instanceid = e.courseid AND ctx.contextlevel = :courselevel)
               JOIN (SELECT cctx.path, ra.userid, MIN(ra.timemodified) AS estart
                       FROM {course_categories} cc
                       JOIN {context} cctx ON (cctx.instanceid = cc.id AND cctx.contextlevel = :catlevel)
                       JOIN {role_assignments} ra ON (ra.contextid = cctx.id AND ra.roleid $roleids)
-                  GROUP BY cctx.path, ra.userid
+                  GROUP BY cctx.path, ra.userid, ra.roleid
                    ) cat ON (ctx.path LIKE $parentcat)
          LEFT JOIN {user_enrolments} ue ON (ue.enrolid = e.id AND ue.userid = cat.userid)
              WHERE e.enrol = 'category' AND ue.id IS NULL";
     $rs = $DB->get_recordset_sql($sql, $params);
     foreach($rs as $instance) {
         $userid = $instance->userid;
+        $roleid = $instance->roleid;
         $estart = $instance->estart;
         unset($instance->userid);
+        unset($instance->roleid);
         unset($instance->estart);
-        $plugin->enrol_user($instance, $userid, null, $estart);
+        $plugin->enrol_user($instance, $userid, $roleid, $estart);
         $trace->output("enrolling: user $userid ==> course $instance->courseid", 1);
     }
     $rs->close();
