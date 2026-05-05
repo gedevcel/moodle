@@ -82,7 +82,7 @@ class enrol_category_observer {
                   JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = :courselevel AND ctx.path LIKE :match)
                   JOIN {enrol} e ON (e.courseid = c.id AND e.enrol = 'category')
              LEFT JOIN {role_assignments} xra ON (xra.userid = :rauserid AND xra.contextid = :catcontextid)
-             LEFT JOIN {user_enrolments} ue ON (ue.enrolid = e.id AND ue.userid = :userid AND ue.status = :enrolstatus)
+             LEFT JOIN {user_enrolments} ue ON (ue.enrolid = e.id AND ue.userid = :userid)
                  WHERE ue.id IS NULL";
         $params = array('courselevel'=>CONTEXT_COURSE, 'match'=>$parentcontext->path.'/%', 'userid'=>$ra->userid, 'rauserid'=>$ra->userid, 'catcontextid'=>$parentcontext->id);
         $rs = $DB->get_recordset_sql($sql, $params);
