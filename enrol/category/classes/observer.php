@@ -77,16 +77,17 @@ class enrol_category_observer {
         $rs->close();
 
         // Now look for missing enrolments.
-        $sql = "SELECT e.*
+        $sql = "SELECT e.*, xra.roleid catroleid
                   FROM {course} c
                   JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = :courselevel AND ctx.path LIKE :match)
                   JOIN {enrol} e ON (e.courseid = c.id AND e.enrol = 'category')
-             LEFT JOIN {user_enrolments} ue ON (ue.enrolid = e.id AND ue.userid = :userid)
+             LEFT JOIN {role_assignments} xra ON (xra.userid = :rauserid AND xra.contextid = :catcontextid)
+             LEFT JOIN {user_enrolments} ue ON (ue.enrolid = e.id AND ue.userid = :userid AND ue.status = :enrolstatus)
                  WHERE ue.id IS NULL";
-        $params = array('courselevel'=>CONTEXT_COURSE, 'match'=>$parentcontext->path.'/%', 'userid'=>$ra->userid);
+        $params = array('courselevel'=>CONTEXT_COURSE, 'match'=>$parentcontext->path.'/%', 'userid'=>$ra->userid, 'rauserid'=>$ra->userid, 'catcontextid'=>$parentcontext->id);
         $rs = $DB->get_recordset_sql($sql, $params);
         foreach ($rs as $instance) {
-            $plugin->enrol_user($instance, $ra->userid, null, time());
+            $plugin->enrol_user($instance, $ra->userid, $instance->catroleid, time());
         }
         $rs->close();
     }
