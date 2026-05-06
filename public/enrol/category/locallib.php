@@ -86,7 +86,7 @@ function enrol_category_sync_course($course) {
 
     // Add new enrolments.
     $sql = "SELECT ra.userid, ra.estart, ra.roleid
-              FROM (SELECT xra.userid, MIN(xra.timemodified) AS estart
+              FROM (SELECT xra.userid, xra.roleid, MIN(xra.timemodified) AS estart
                       FROM {role_assignments} xra
                       JOIN {user} xu ON (xu.id = xra.userid AND xu.deleted = 0)
                      WHERE xra.roleid $roleids AND xra.contextid $contextids
@@ -216,7 +216,7 @@ function enrol_category_sync_full(progress_trace $trace) {
     $sql = "SELECT e.*, cat.userid, cat.estart, cat.roleid
               FROM {enrol} e
               JOIN {context} ctx ON (ctx.instanceid = e.courseid AND ctx.contextlevel = :courselevel)
-              JOIN (SELECT cctx.path, ra.userid, MIN(ra.timemodified) AS estart
+              JOIN (SELECT cctx.path, ra.roleid, ra.userid, MIN(ra.timemodified) AS estart
                       FROM {course_categories} cc
                       JOIN {context} cctx ON (cctx.instanceid = cc.id AND cctx.contextlevel = :catlevel)
                       JOIN {role_assignments} ra ON (ra.contextid = cctx.id AND ra.roleid $roleids)
