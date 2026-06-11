@@ -1424,7 +1424,7 @@ class mod_workshop_renderer extends plugin_renderer_base {
                         $output .= $this->perpage_selector($perpage);
                     } else {
                         $output .= html_writer::tag('div', get_string('nothingfound', 'workshop'),
-                            'info', false);
+                            ['class' => 'info']);
                     }
                     $output .= print_collapsible_region_end(true);
                 }
